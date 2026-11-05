@@ -601,7 +601,7 @@ var KIT = (function () {
       lang_later: 'You can change this later at the top of the start screen.',
       btn_play: 'Play', btn_howto: 'How to Play', btn_care: 'For Caregivers', btn_next: 'Next', btn_letsplay: "Let's play",
       btn_skip_howto: "Skip, let's play", btn_back: 'Back', btn_close: 'Close', btn_rest: 'Rest', btn_keep: 'Keep playing',
-      btn_keep_going: 'Keep going', btn_playagain: 'Play again', btn_home: 'Home', btn_mute: 'Sound off', btn_unmute: 'Sound on',
+      btn_keep_going: 'Keep going', btn_playagain: 'Play again', btn_home: 'Home', home_q: 'Back to the start?', btn_stay: 'Stay', btn_mute: 'Sound off', btn_unmute: 'Sound on',
       btn_ok: 'OK', btn_cancel: 'Cancel', btn_done: 'Done',
       end_title: 'That was lovely', rest_title: 'Rest well', restcard_title: 'Time for a rest?',
       mood_title: 'How are you feeling now?', mood_happy: 'Happy', mood_okay: 'Okay', mood_notgreat: 'Not great', mood_skip: 'Skip',
@@ -627,7 +627,7 @@ var KIT = (function () {
       btn_settings: 'Caregiver settings', hold_hint: 'Press and hold to open', hold_tap_hint: 'Keep holding until the circle fills.',
       stays_local: 'Everything you add stays on this phone.',
       online_line: "Spoken sentences are sent to your phone's speech service. Nothing personal is sent.",
-      series_home: 'More games',
+      series_home: 'All games',
       set_title: 'Caregiver settings', set_g_checklist: 'Setup checklist', set_g_sound: 'Sound', set_g_voice: 'Voice', set_g_screen: 'Screen',
       set_g_game: 'This game', set_g_content: 'Your content', set_g_records: 'Records', set_g_data: 'Your data',
       set_lang: 'Language', set_music_vol: 'Music volume', set_speech_vol: 'Voice volume', set_music_play: 'Music while playing',
@@ -662,7 +662,7 @@ var KIT = (function () {
       lang_later: '之后可以在开始页面顶部更改。',
       btn_play: '开始', btn_howto: '怎么玩', btn_care: '照顾者指南', btn_next: '下一步', btn_letsplay: '开始吧',
       btn_skip_howto: '跳过，直接开始', btn_back: '返回', btn_close: '关闭', btn_rest: '休息', btn_keep: '再玩一会儿',
-      btn_keep_going: '继续', btn_playagain: '再玩一次', btn_home: '回到首页', btn_mute: '关闭声音', btn_unmute: '打开声音',
+      btn_keep_going: '继续', btn_playagain: '再玩一次', btn_home: '回到首页', home_q: '回到开始画面吗？', btn_stay: '留在这里', btn_mute: '关闭声音', btn_unmute: '打开声音',
       btn_ok: '好', btn_cancel: '取消', btn_done: '完成',
       end_title: '刚才真愉快', rest_title: '好好休息', restcard_title: '要不要休息一下？',
       mood_title: '您现在感觉怎么样？', mood_happy: '开心', mood_okay: '一般', mood_notgreat: '不太好', mood_skip: '跳过',
@@ -688,7 +688,7 @@ var KIT = (function () {
       btn_settings: '照顾者设置', hold_hint: '按住不放即可打开', hold_tap_hint: '请继续按住，等圆圈填满。',
       stays_local: '您添加的所有内容都只保存在这部手机上。',
       online_line: '要朗读的句子会发送到手机的语音服务，不会发送任何个人资料。',
-      series_home: '更多游戏',
+      series_home: '所有游戏',
       set_title: '照顾者设置', set_g_checklist: '设置清单', set_g_sound: '声音', set_g_voice: '语音', set_g_screen: '显示',
       set_g_game: '本游戏设置', set_g_content: '您添加的内容', set_g_records: '记录', set_g_data: '资料备份',
       set_lang: '语言', set_music_vol: '音乐音量', set_speech_vol: '说话音量', set_music_play: '游戏中的音乐',
@@ -1010,7 +1010,7 @@ var KIT = (function () {
       '<div class="dgs-notice">' + icon('phone') + '<div><b>' + esc(s('safe_h')) + '</b>' + esc(s('safe_text')) + '</div></div>' +
       '<div class="dgs-notice">' + icon('soundOff') + '<div><b>' + esc(s('iphone_h')) + '</b>' + esc(s('iphone_tip')) + '</div></div>' +
       holdHTML('kitOpenSettings', s('btn_settings'), s('hold_hint'), 'settings') +
-      (o.seriesHome && o.seriesHome !== '#' ? '<a class="dgs-btn dgs-btn--secondary dgs-btn--small" href="' + esc(o.seriesHome) + '">' + btn('home', s('series_home')) + '</a>' : '') +
+      (o.seriesHome && o.seriesHome !== '#' ? '<a class="dgs-btn dgs-btn--secondary dgs-btn--small" href="' + esc(o.seriesHome) + '">' + btn('grid', s('series_home')) + '</a>' : '') +
       '<p class="dgs-footnote"><b>' + esc(s('stays_local')) + '</b>' + (o.online ? '<br>' + esc(s('online_line')) : '') + (o.extraFooter ? '<br>' + esc(o.extraFooter) : '') + '<br>' + esc(s('tablet_note')) + '</p>' +
       '</div>';
   }
@@ -1304,7 +1304,7 @@ const TUNE = {
 };
 const SEMI = { '1': 0, '2': 2, '3': 4, '5': 7, '6': 9 };
 const freqOf = n => 587.33 * Math.pow(2, SEMI[n] / 12);   // 1 = D5, music-box register
-let AC = null, master = null, musicOn = false, loopTimer = null;
+let AC = null, master = null, musicOn = false, tick = null, live = [], pos = 0, nextAt = 0;
 function bell(f, t) {
   // a soft music-box note: a pure tone with a faint octave, quick start, long gentle fade
   [[1, 0.16], [2, 0.03]].forEach(([mult, vol]) => {
@@ -1312,27 +1312,39 @@ function bell(f, t) {
     o.type = 'sine'; o.frequency.value = f * mult;
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
     o.connect(g); g.connect(master); o.start(t); o.stop(t + 1.9);
+    live.push(o); o.onended = () => { live = live.filter(x => x !== o); };
   });
 }
-function playOnce() {
-  if (!musicOn) return;
-  const beat = 60 / TUNE.bpm; let t = AC.currentTime + 0.15, total = 0;
-  TUNE.notes.forEach(([n, b]) => { if (n) bell(freqOf(n), t + total * beat); total += b; });
-  loopTimer = setTimeout(playOnce, total * beat * 1000);
+/* Notes are scheduled only a moment ahead, so stopping really stops: nothing is left queued to overlap a restart. */
+function scheduler() {
+  const beat = 60 / TUNE.bpm;
+  while (musicOn && nextAt < AC.currentTime + 0.6) {
+    const [n, b] = TUNE.notes[pos];
+    if (n) bell(freqOf(n), nextAt);
+    nextAt += b * beat;
+    pos = (pos + 1) % TUNE.notes.length;
+  }
 }
+function silenceAll() { live.forEach(o => { try { o.stop(); } catch (e) {} }); live = []; }
 function startMusic() {
   if (musicOn) return;                       // never start a second copy
   try {
     if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.connect(AC.destination); }
     if (navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
     AC.resume();
+    silenceAll(); clearInterval(tick);
     master.gain.cancelScheduledValues(AC.currentTime); master.gain.setValueAtTime(0.0001, AC.currentTime); master.gain.linearRampToValueAtTime(0.5, AC.currentTime + 2);
-    musicOn = true; clearTimeout(loopTimer); playOnce();
+    musicOn = true; pos = 0; nextAt = AC.currentTime + 0.15;
+    scheduler(); tick = setInterval(scheduler, 200);
   } catch (e) { musicOn = false; }
 }
 function stopMusic() {
-  musicOn = false; clearTimeout(loopTimer);
-  if (AC) { const t = AC.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(0.0001, t + 1); setTimeout(() => { if (!musicOn && AC) AC.suspend(); }, 1200); }
+  musicOn = false; clearInterval(tick); tick = null;
+  if (AC) {
+    const t = AC.currentTime;
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(0.0001, t + 0.6);
+    setTimeout(() => { if (!musicOn) silenceAll(); }, 700);
+  }
 }
 function musicButton() {
   const b = $('music');

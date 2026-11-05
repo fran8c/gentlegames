@@ -540,6 +540,8 @@ html[data-contrast="high"] .recall-overlay{background:rgba(255,255,255,.97)}
 @media (max-height:700px){ #screen-session-end .dgs-hero,#screen-rest .dgs-hero{ max-height:20vh; } }
 #screen-game{ gap:var(--space-2); }
 .game-topbar{ justify-content:space-between; }
+.game-left{ display:flex; gap:10px; }
+.game-topbar{ position:relative; z-index:25; }   /* Home, help and sound stay reachable above a question card */
 .game-bottom{ display:flex; justify-content:center; padding:8px 0 calc(var(--safe-b) + 4px); }
 #btn-rest{ width:auto; min-width:210px; padding:0 32px; min-height:64px; }
 .recall-actions .dgs-btn{ width:auto; min-width:180px; padding:0 24px; }
@@ -594,6 +596,20 @@ button:focus-visible,[role="button"]:focus-visible{outline:4px solid var(--focus
 .recall-lead{line-height:1.4;}
 .fact-thumb svg,.recall-img svg{filter:drop-shadow(0 3px 3px rgba(50,40,30,.12));}
 @media(prefers-reduced-motion:reduce){.flower-slot,.flower-slot svg{animation:none!important;transition:none!important;}}
+
+/* "All games": back to the Gentle Games landing page, top corner of the start screen */
+.dgs-allgames{ display:inline-flex; align-items:center; gap:6px; min-height:48px; padding:0 14px; border-radius:999px; background:var(--surface); color:var(--primary-ink, var(--primary)); text-decoration:none; font-size:17px; font-weight:700; box-shadow:inset 0 0 0 2px var(--border); flex:none; white-space:nowrap; }
+.dgs-allgames .dgs-icon{ width:22px; height:22px; }
+.dgs-allgames:active{ transform:scale(.96); }
+.dgs-allgames:focus-visible{ outline:3px solid var(--focus-ring); outline-offset:3px; }
+.dgs-topbar.has-allgames{ justify-content:flex-start; gap:10px; padding-right:68px; }
+/* Narrow phones: "All games" on the first row (beside the sound button), the language switch on the row below */
+@media (max-width:520px){
+  .dgs-topbar.has-allgames{ flex-wrap:wrap; row-gap:8px; padding-right:0; }
+  .dgs-topbar.has-allgames .dgs-allgames{ margin-right:100%; }
+}
+/* Very short screens: drop the tablet tip under the buttons so the start screen still fits without scrolling */
+@media (max-width:520px) and (max-height:700px){ .dgs-topbar.has-allgames ~ .dgs-footnote{ display:none; } }
 /* ==== END SECTION: STYLES ==== */
 </style>
 </head>
@@ -611,7 +627,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:4px solid var(--focus
 <!-- Start: language at the top, name, picture, Play, then the two guide buttons -->
 <div id="screen-start" class="screen">
   <div class="col">
-    <div class="dgs-topbar"><div class="dgs-lang" id="start-lang" role="group" aria-label="Language / 语言"></div></div>
+    <div class="dgs-topbar has-allgames"><a class="dgs-allgames" href="../"><svg class="dgs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>All games</span></a><div class="dgs-lang" id="start-lang" role="group" aria-label="Language / 语言"></div></div>
     <h1 class="dgs-title" id="start-title"></h1>
     <div class="dgs-hero" style="--hero-ratio:4/3"><div class="dgs-art start-art" id="start-illustration" aria-hidden="true"></div></div>
     <div class="dgs-btns">
@@ -659,7 +675,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:4px solid var(--focus
 <!-- The garden -->
 <div id="screen-game" class="screen">
   <div class="dgs-topbar game-topbar">
-    <button class="dgs-round" id="btn-game-help" type="button" aria-label="?"></button>
+    <div class="game-left"><button class="dgs-round" id="btn-game-home" type="button"></button><button class="dgs-round" id="btn-game-help" type="button" aria-label="?"></button></div>
     <div class="q-progress" id="q-progress" role="status" aria-live="polite"></div>
     <button class="dgs-round" id="btn-game-mute" type="button"></button>
   </div>
@@ -1088,7 +1104,7 @@ var KIT = (function () {
       lang_later: 'You can change this later at the top of the start screen.',
       btn_play: 'Play', btn_howto: 'How to Play', btn_care: 'For Caregivers', btn_next: 'Next', btn_letsplay: "Let's play",
       btn_skip_howto: "Skip, let's play", btn_back: 'Back', btn_close: 'Close', btn_rest: 'Rest', btn_keep: 'Keep playing',
-      btn_keep_going: 'Keep going', btn_playagain: 'Play again', btn_home: 'Home', btn_mute: 'Sound off', btn_unmute: 'Sound on',
+      btn_keep_going: 'Keep going', btn_playagain: 'Play again', btn_home: 'Home', home_q: 'Back to the start?', btn_stay: 'Stay', btn_mute: 'Sound off', btn_unmute: 'Sound on',
       btn_ok: 'OK', btn_cancel: 'Cancel', btn_done: 'Done',
       end_title: 'That was lovely', rest_title: 'Rest well', restcard_title: 'Time for a rest?',
       mood_title: 'How are you feeling now?', mood_happy: 'Happy', mood_okay: 'Okay', mood_notgreat: 'Not great', mood_skip: 'Skip',
@@ -1114,7 +1130,7 @@ var KIT = (function () {
       btn_settings: 'Caregiver settings', hold_hint: 'Press and hold to open', hold_tap_hint: 'Keep holding until the circle fills.',
       stays_local: 'Everything you add stays on this phone.',
       online_line: "Spoken sentences are sent to your phone's speech service. Nothing personal is sent.",
-      series_home: 'More games',
+      series_home: 'All games',
       set_title: 'Caregiver settings', set_g_checklist: 'Setup checklist', set_g_sound: 'Sound', set_g_voice: 'Voice', set_g_screen: 'Screen',
       set_g_game: 'This game', set_g_content: 'Your content', set_g_records: 'Records', set_g_data: 'Your data',
       set_lang: 'Language', set_music_vol: 'Music volume', set_speech_vol: 'Voice volume', set_music_play: 'Music while playing',
@@ -1149,7 +1165,7 @@ var KIT = (function () {
       lang_later: '之后可以在开始页面顶部更改。',
       btn_play: '开始', btn_howto: '怎么玩', btn_care: '照顾者指南', btn_next: '下一步', btn_letsplay: '开始吧',
       btn_skip_howto: '跳过，直接开始', btn_back: '返回', btn_close: '关闭', btn_rest: '休息', btn_keep: '再玩一会儿',
-      btn_keep_going: '继续', btn_playagain: '再玩一次', btn_home: '回到首页', btn_mute: '关闭声音', btn_unmute: '打开声音',
+      btn_keep_going: '继续', btn_playagain: '再玩一次', btn_home: '回到首页', home_q: '回到开始画面吗？', btn_stay: '留在这里', btn_mute: '关闭声音', btn_unmute: '打开声音',
       btn_ok: '好', btn_cancel: '取消', btn_done: '完成',
       end_title: '刚才真愉快', rest_title: '好好休息', restcard_title: '要不要休息一下？',
       mood_title: '您现在感觉怎么样？', mood_happy: '开心', mood_okay: '一般', mood_notgreat: '不太好', mood_skip: '跳过',
@@ -1175,7 +1191,7 @@ var KIT = (function () {
       btn_settings: '照顾者设置', hold_hint: '按住不放即可打开', hold_tap_hint: '请继续按住，等圆圈填满。',
       stays_local: '您添加的所有内容都只保存在这部手机上。',
       online_line: '要朗读的句子会发送到手机的语音服务，不会发送任何个人资料。',
-      series_home: '更多游戏',
+      series_home: '所有游戏',
       set_title: '照顾者设置', set_g_checklist: '设置清单', set_g_sound: '声音', set_g_voice: '语音', set_g_screen: '显示',
       set_g_game: '本游戏设置', set_g_content: '您添加的内容', set_g_records: '记录', set_g_data: '资料备份',
       set_lang: '语言', set_music_vol: '音乐音量', set_speech_vol: '说话音量', set_music_play: '游戏中的音乐',
@@ -1497,7 +1513,7 @@ var KIT = (function () {
       '<div class="dgs-notice">' + icon('phone') + '<div><b>' + esc(s('safe_h')) + '</b>' + esc(s('safe_text')) + '</div></div>' +
       '<div class="dgs-notice">' + icon('soundOff') + '<div><b>' + esc(s('iphone_h')) + '</b>' + esc(s('iphone_tip')) + '</div></div>' +
       holdHTML('kitOpenSettings', s('btn_settings'), s('hold_hint'), 'settings') +
-      (o.seriesHome && o.seriesHome !== '#' ? '<a class="dgs-btn dgs-btn--secondary dgs-btn--small" href="' + esc(o.seriesHome) + '">' + btn('home', s('series_home')) + '</a>' : '') +
+      (o.seriesHome && o.seriesHome !== '#' ? '<a class="dgs-btn dgs-btn--secondary dgs-btn--small" href="' + esc(o.seriesHome) + '">' + btn('grid', s('series_home')) + '</a>' : '') +
       '<p class="dgs-footnote"><b>' + esc(s('stays_local')) + '</b>' + (o.online ? '<br>' + esc(s('online_line')) : '') + (o.extraFooter ? '<br>' + esc(o.extraFooter) : '') + '<br>' + esc(s('tablet_note')) + '</p>' +
       '</div>';
   }
@@ -1629,6 +1645,8 @@ function renderChrome(){
   set('btn-caregivers', KIT.btn('care', KIT.s('btn_care')));
   ['btn-htp-close', 'btn-cg-back', 'btn-settings-back'].forEach(id => set(id, KIT.btn('back', KIT.s('btn_back'))));
   set('btn-game-help', KIT.icon('help'));
+  set('btn-game-home', KIT.icon('home'));
+  { const hb = document.getElementById('btn-game-home'); if (hb) hb.setAttribute('aria-label', KIT.s('btn_home')); }
   set('btn-rest', KIT.btn('moon', KIT.s('btn_rest')));
   set('btn-just-garden', KIT.btn('leaf', t('game.justGarden')));
   if (typeof updateQuestionsBtn === 'function' && typeof gameState !== 'undefined') updateQuestionsBtn();
@@ -1894,7 +1912,9 @@ function playNote(freq, startTime, durSec, gainVal){
     gain.connect(musicGain);
     osc.start(now);
     osc.stop(now + durSec + 0.5);
+    return osc;
   } catch(e){}
+  return null;
 }
 
 const NOTE_FREQ = {
@@ -1947,14 +1967,20 @@ function buildMelodyTimeline(melody){
   melodyCache = { id: melody.id, notes: allNotes, totalSec };
   return melodyCache;
 }
+/* The theme's queued notes, so a restart can clear them first (two copies must never overlap). */
+let musicNodes = [];
+function stopScheduledMusic(){ musicNodes.forEach(o => { try { o.stop(); } catch(e){} }); musicNodes = []; }
 function scheduleMusicLoop(){
   if (!audioCtx || !musicGain) return;
+  if (musicSchedulerTimer){ clearTimeout(musicSchedulerTimer); musicSchedulerTimer = null; }
   const melody = MELODIES.theme;
   const timeline = buildMelodyTimeline(melody);
   const loopGap = 0.6;
   const t0 = audioCtx.currentTime + 0.15;
+  musicNodes = musicNodes.filter(o => o.__end > audioCtx.currentTime);
   timeline.notes.forEach(n => {
-    playNote(n.freq, t0 + n.startSec, n.durSec, 0.55);
+    const o = playNote(n.freq, t0 + n.startSec, n.durSec, 0.55);
+    if (o){ o.__end = t0 + n.startSec + n.durSec + 0.5; musicNodes.push(o); }
   });
   const nextIn = timeline.totalSec + loopGap;
   musicSchedulerTimer = setTimeout(scheduleMusicLoop, Math.max(500, (nextIn - 0.2) * 1000));
@@ -1982,10 +2008,11 @@ function onVisibilityChange(){
   if (document.hidden){
     stopSpeech();
     if (musicSchedulerTimer){ clearTimeout(musicSchedulerTimer); musicSchedulerTimer = null; }
+    stopScheduledMusic();   // nothing left queued to overlap when the page comes back
     if (audioCtx) { try { audioCtx.suspend(); } catch(e){} }
   } else {
     if (audioCtx) { try { audioCtx.resume(); } catch(e){} }
-    if (musicRunning) scheduleMusicLoop();
+    if (musicRunning){ stopScheduledMusic(); scheduleMusicLoop(); }
     reacquireWakeLock();
   }
 }
@@ -2920,6 +2947,7 @@ function initGameButtons(){
     resetIdleTimer();
   });
   document.getElementById('btn-just-garden').addEventListener('click', justGarden);
+  document.getElementById('btn-game-home').addEventListener('click', goHomeFromGarden);
   document.getElementById('btn-questions').addEventListener('click', resumeQuestions);
 }
 /* Play goes straight to the garden. */
@@ -2935,6 +2963,23 @@ function showQNext(onTap){
   nb.onclick = () => { nb.classList.add('hidden'); nb.onclick = null; haptic(15); onTap(); };
 }
 /* ---- Just the garden: leave the questions and plant flowers ---- */
+/* ---- Home: back to the start screen, after "Back to the start?" (Stay is the main choice) ---- */
+function goHomeFromGarden(){
+  KIT.dialog({ title: KIT.s('home_q'), buttons: [
+    { label: KIT.s('btn_stay'), primary: true },
+    { label: KIT.s('btn_home'), icon: 'home', onClick: () => {
+      stopSpeech();
+      if (scheduledRecallTimer){ clearTimeout(scheduledRecallTimer); scheduledRecallTimer = null; }
+      clearInterval(sessionTimerId); sessionTimerId = null;
+      pendingEnd = false;
+      gameState.paused = true; saveGameState();
+      document.getElementById('recall-overlay').classList.remove('show');
+      logSessionEnd(null, true);
+      renderStartScreen(); showScreen('start');
+    } }
+  ] });
+}
+
 let currentQuestion = null;   // the question on screen, so it can be asked again later
 let pendingEnd = false;       // time ran out during a question: end after it
 let factHintDone = false;     // the "add your own facts" caption shows once a session
@@ -3621,6 +3666,14 @@ if (document.readyState === 'loading'){
 } else {
   boot();
 }
+</script>
+<script>
+/* "All games" label follows the page language (set by the game on <html lang>). */
+(function(){
+  function label(){ var zh = (document.documentElement.lang || '').indexOf('zh') === 0;
+    document.querySelectorAll('.dgs-allgames').forEach(function(a){ var s = a.querySelector('span'); if (s) s.textContent = zh ? '所有游戏' : 'All games'; a.setAttribute('aria-label', zh ? '所有游戏 · 温和小游戏' : 'All games · Gentle Games'); }); }
+  label(); try { new MutationObserver(label).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] }); } catch (e) {}
+})();
 </script>
 </body>
 </html>
