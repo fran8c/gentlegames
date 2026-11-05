@@ -705,8 +705,9 @@ input[type=range]::-moz-range-thumb{ width:30px; height:30px; border-radius:50%;
 #screen-session .col,#screen-rest .col{ justify-content:center; }
 #screen-session .dgs-hero{ flex:0 1 auto; max-height:24vh; }
 #screen-session #mood-block .dgs-caption{ font-size:24px; line-height:32px; }
+#screen-rest #rest-mood .dgs-caption{ font-size:24px; line-height:32px; }
 #screen-rest .dgs-hero{ max-height:36vh; }
-@media (max-height:700px){ #screen-session .dgs-hero{ display:none; } #screen-rest .dgs-hero{ max-height:28vh; } }
+@media (max-height:700px){ #screen-session .dgs-hero{ display:none; } #screen-rest .dgs-hero{ max-height:28vh; } #screen-rest:has(#rest-mood:not([hidden])) .dgs-hero{ display:none; } }
 
 /* Play screen */
 #screen-game{ gap:var(--space-2); }
@@ -903,6 +904,11 @@ button:focus-visible,[role="button"]:focus-visible{outline:4px solid var(--focus
   <div class="col">
     <div class="dgs-hero" style="--hero-ratio:354/286"><div class="dgs-art" id="rest-art"></div></div>
     <h2 class="dgs-title" data-i18n="rest.title"></h2>
+    <div id="rest-mood" class="dgs-btns" hidden>
+      <p class="dgs-caption" id="rest-mood-q"></p>
+      <div class="dgs-moods" id="rest-moods"></div>
+      <button class="dgs-btn dgs-btn--quiet" id="btn-rest-mood-skip" type="button"></button>
+    </div>
     <div id="rest-quote"></div>
     <div class="dgs-btns">
       <button class="dgs-btn dgs-btn--primary dgs-btn--play" id="btn-rest-play" type="button"></button>
@@ -2988,6 +2994,7 @@ function bindAllButtons() {
   bindStaticButton('btn-session-rest', restNow);
   bindStaticButton('btn-session-keep', keepPlaying);
   bindStaticButton('btn-mood-skip', skipMood);
+  bindStaticButton('btn-rest-mood-skip', function () { RUNTIME.moodOfferId = null; renderRestMood(); });
   bindStaticButton('btn-rest-play', function () {
     ensureAudio();
     startSession();
@@ -3395,11 +3402,14 @@ function skipMood() {
 /* REST: show the calm screen at once, fade the music over 3 s, save progress */
 function restNow() {
   if (RUNTIME.screen === 'rest') return;
-  const early = RUNTIME.screen === 'game' && RUNTIME.sessionRemainingMs > 0;
+  const fromGame = RUNTIME.screen === 'game';
+  const early = fromGame && RUNTIME.sessionRemainingMs > 0;
   stopSpeech();
   if (RUNTIME.jobId) saveGameState();
   leaveJob();
   saveSession(early ? { endedEarly: true } : {});
+  /* Rest tapped part-way: offer the mood faces on the Rest screen (the timer-end screen asks them itself) */
+  RUNTIME.moodOfferId = (fromGame && RUNTIME.sessionId && findSessionLog(RUNTIME.sessionId)) ? RUNTIME.sessionId : null;
   stopSessionTimer();
   RUNTIME.sessionId = null;
 
@@ -3411,6 +3421,7 @@ function restNow() {
 
 function renderRest() {
   renderIllustration(document.getElementById('rest-art'), 'rest');
+  renderRestMood();
   const q = document.getElementById('rest-quote');
   if (q) q.innerHTML = KIT.quoteHTML(KIT.pickQuote('player'), 'player');
   renderRestButtons();
@@ -3542,6 +3553,29 @@ function renderSessionButtons() {
   if (k) k.innerHTML = KIT.btn('play', KIT.s('btn_keep'));
   const sk = document.getElementById('btn-mood-skip');
   if (sk) sk.innerHTML = '<span>' + escapeHtml(KIT.s('mood_skip')) + '</span>';
+}
+
+function renderRestMood() {
+  const block = document.getElementById('rest-mood');
+  if (!block) return;
+  block.hidden = !RUNTIME.moodOfferId;
+  if (!RUNTIME.moodOfferId) return;
+  document.getElementById('rest-mood-q').textContent = t('session.moodTitle');
+  const faces = document.getElementById('rest-moods');
+  faces.innerHTML = KIT.moodsHTML();
+  faces.querySelectorAll('.dgs-mood').forEach(function (b) {
+    b.addEventListener('click', function () {
+      const id = RUNTIME.moodOfferId; if (!id) return;
+      const prev = findSessionLog(id);
+      RUNTIME.sessionId = id;
+      saveSession({ mood: b.getAttribute('data-mood'), minutes: prev ? prev.minutes : null });
+      RUNTIME.sessionId = null;
+      RUNTIME.moodOfferId = null;
+      KIT.toast(KIT.s('mood_saved'));
+      renderRestMood();
+    });
+  });
+  document.getElementById('btn-rest-mood-skip').innerHTML = '<span>' + escapeHtml(KIT.s('mood_skip')) + '</span>';
 }
 
 function renderRestButtons() {

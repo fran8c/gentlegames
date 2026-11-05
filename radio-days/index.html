@@ -394,6 +394,9 @@ body.level-simplest #screen-game .captions{ min-height:1.4em; }
   .source-label{ font-size:17px; }
   .embed-wrap iframe{ height:80px; }
 }
+
+.game-rest-btn{ align-self:center; margin-top:12px; min-width:200px; }
+body.level-simplest #btn-game-rest{ margin-top:auto; }
 .dial-on{ opacity:0; transition:opacity .8s ease; }
 body.rd-playing .dial-on{ animation:rddial 3.2s ease-in-out infinite; }
 @keyframes rddial{ 0%,100%{ opacity:.18; } 50%{ opacity:.42; } }
@@ -624,6 +627,9 @@ button:focus-visible,[role="button"]:focus-visible{outline:4px solid var(--focus
     <div class="captions-row"><div id="captions" class="captions" aria-live="polite"></div><button class="caption-replay" id="btn-caption-replay" type="button" hidden aria-label="Hear again / 再听一次"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
 
     <div id="station-row" class="station-row" role="group" data-i18n-aria="game.stations"></div>
+
+    <!-- Rest now: fades the music, asks the faces, then the Rest screen -->
+    <button id="btn-game-rest" class="dgs-btn dgs-btn--secondary game-rest-btn" type="button" data-i18n="end.rest"></button>
 
 
 
@@ -3468,6 +3474,17 @@ function wireButtons(){
   });
 
   byId('btn-card-rest').addEventListener('click', async () => {
+    if (typeof gameRestCardHide === 'function') gameRestCardHide();
+    audioFade(CONFIG.TIMING.REST_FADE_MS);
+    if (typeof gameHalt === 'function') gameHalt(CONFIG.TIMING.REST_FADE_MS);
+    const mood = await moodShow();
+    logPendingSession(mood);
+    screenRest();
+  });
+
+  byId('btn-game-rest').addEventListener('click', async () => {
+    const summary = sessionEnd('exit');   // ended early, logged like any other session
+    if (summary) pendingSessionSummary = summary;
     if (typeof gameRestCardHide === 'function') gameRestCardHide();
     audioFade(CONFIG.TIMING.REST_FADE_MS);
     if (typeof gameHalt === 'function') gameHalt(CONFIG.TIMING.REST_FADE_MS);
